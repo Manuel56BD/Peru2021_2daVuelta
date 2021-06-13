@@ -82,8 +82,8 @@ df_2v['MESAS_PROVI'] = df_2v.groupby(['DEPARTAMENTO','PROVINCIA'])['mesa'].trans
 
 
 # Locales con 10 o más mesas
-df_2v['GRUPO'] = np.where(df_2v['MESAS_LOCAL']>=10,'LOCAL',
-                 np.where(df_2v['MESAS_DISTR']>=10,'DISTRITO','PROVINCIA'))
+df_2v['GRUPO'] = np.where(df_2v['MESAS_LOCAL']>=9,'LOCAL',
+                 np.where(df_2v['MESAS_DISTR']>=9,'DISTRITO','PROVINCIA'))
 
 df_2v['GRUPO'] = np.where((df_2v['MESAS_LOCAL']<9) & (df_2v['MESAS_DISTR']>120),
                           'SIN GRUPO',df_2v['GRUPO'])
