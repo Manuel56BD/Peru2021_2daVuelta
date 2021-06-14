@@ -58,7 +58,7 @@ df_2v = df_2v[~df_2v['DEPARTAMENTO'].isin(['AFRICA','AMERICA','ASIA','EUROPA','O
 # Tomamos las contabilizadas normales
 df_2v = df_2v[(df_2v['OBSERVACION']=='CONTABILIZADAS NORMALES')]
 
-# Mesas resueltas NULO==EMITIDO (3 ACTAS)
+# Mesas resueltas NULO!=EMITIDO (3 ACTAS)
 df_2v = df_2v[(df_2v['OBSERVACION_TXT']!='ACTA ELECTORAL RESUELTA') |
               ((df_2v['OBSERVACION_TXT']=='ACTA ELECTORAL RESUELTA') & (df_2v['NULOS']!=df_2v['EMITIDOS']))] \
              [['mesa', 'CCODI_UBIGEO', 'TNOMB_LOCAL', 
@@ -81,7 +81,7 @@ df_2v['MESAS_DISTR'] = df_2v.groupby(['CCODI_UBIGEO'])['mesa'].transform(len)
 df_2v['MESAS_PROVI'] = df_2v.groupby(['DEPARTAMENTO','PROVINCIA'])['mesa'].transform(len)
 
 
-# Locales con 10 o más mesas
+# Locales con 9 o más mesas
 df_2v['GRUPO'] = np.where(df_2v['MESAS_LOCAL']>=9,'LOCAL',
                  np.where(df_2v['MESAS_DISTR']>=9,'DISTRITO','PROVINCIA'))
 
@@ -207,16 +207,23 @@ df_2v['IRREGULAR'] =  0
 for i in range(0,len(unica)):
     df_2v['IRREGULAR'] = np.where(df_2v[unica[i]]==1,1,df_2v['IRREGULAR'])
 
-# Cuántas es la diferencia
+df_2v['IRREGULAR'] =  np.where(df_2v['GRUPO']=='SIN GRUPO', np.nan ,df_2v['IRREGULAR'])
+    
+# Cuántas es la diferencia por partido
 df_2v['DIF_MEDI_FP'] = np.where(df_2v['IRREGULAR']==1,df_2v['FP_EMIT']-df_2v['FP_MEDI'],np.nan)
 df_2v['DIF_MEDI_PL'] = np.where(df_2v['IRREGULAR']==1,df_2v['PL_EMIT']-df_2v['PL_MEDI'],np.nan)
+
+# A qué partido favorece
 df_2v['FAVORECE'] = np.where(df_2v['DIF_MEDI_FP'].isnull(), '',
                     np.where(df_2v['DIF_MEDI_FP']<df_2v['DIF_MEDI_PL'],'PL','FP'))
 
+# En el script creamos otras variables que podrían producir alarma (asistencia irregular o no válidos irregular, no los incorporé en el resultado final, pueden analizarse)
 #df_2v    =   df_2v.drop(df_2v.loc[:,'OUTL_PL_l':'OUTL_AS_p'].columns,axis=1)
 #df_2v    =   df_2v.drop(['MZSC_NV_l','MZSC_AS_l','MZSC_NV_d','MZSC_AS_d','MZSC_NV_p','MZSC_AS_p'],axis=1)
 
+# Estandarizar a strings si por a o b se numerizaron
 df_2v['mesa']          = df_2v['mesa'].astype(int).astype(str).str.zfill(6)
 df_2v['CCODI_UBIGEO']  = df_2v['CCODI_UBIGEO'].astype(int).astype(str).str.zfill(6)
 
+# Salida para el libro de trabajo
 df_2v.to_excel('./libro_trabajo.xlsx', index=False)
